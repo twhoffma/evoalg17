@@ -2,6 +2,7 @@ import itertools
 import timeit
 import random
 import math
+import statistics
 
 #Load the data
 f = open('european_cities.csv','r')
@@ -44,29 +45,33 @@ def exhaustiveSearch(numCities):
 	print("[ES](" + str(numCities) + ") Best route: " + str(namedRoute) + " in " + str(round(minDist, 2)) + "km")
 
 def hillClimbing(numCities):
-	cityRoutes = itertools.permutations(list(range(numCities)))
 	minDist = 0
 	bestRoute = ()
 	solDists = []
 	solRoutes = []
 	
 	numIter = 20
-	numSamp = 100
+	numSamp = 1000
 	
 	#Select initial solutions
-	x = sorted([random.randint(0, math.factorial(numCities)) for i in range(numIter)])
+	#cityRoutes = itertools.permutations(list(range(numCities)))
+	#x = sorted([random.randint(0, math.factorial(numCities)) for i in range(numIter)])
 	
-	i = 0
-	j = 0
-	initRoutes = []
-	for r in cityRoutes:
-		if i == x[j]:
-			initRoutes.append(list(r))
-			if len(initRoutes) == len(x):
-				break
-			j = j +1
-		i = i +1
+	##Sorting through these takes too much time
+	#i = 0
+	#j = 0
+	#initRoutes = []
+	#for r in cityRoutes:
+	#	if i == x[j]:
+	#		initRoutes.append(list(r))
+	#		if len(initRoutes) == len(x):
+	#			break
+	#		j = j +1
+	#	i = i +1
 	
+	initRoutes = [random.sample(range(0, numCities), numCities) for i in range(numIter)]	
+	
+	print("init route length:" + str(len(initRoutes[0])))
 	
 	#Pairs of random changes
 	cp = [(random.randint(0, len(initRoutes[0])-1), random.randint(0, len(initRoutes[0])-1)) for i in range(numSamp)]
@@ -90,15 +95,15 @@ def hillClimbing(numCities):
 		solDists.append(dist)
 		solRoutes.append(bestRoute)
 	
-	print("[HC](" + str(numCities) + ") Avg. dist: " + str(float(sum(solDists))/len(solDists)) + "km, min: " +str(min(solDists)))	
+	print("Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(min(solDists),max(solDists),statistics.mean(solDists), statistics.stdev(solDists)))
 		
 
-#Timing Exhaustive Search - it simply doesn't complete at 11 - it's killed
-for n in [6,7,8,9,10,11]:
+#Timing Exhaustive Search
+for n in [6,7,8,9,10]:
 	t = timeit.Timer("exhaustiveSearch(" + str(n) + ")", globals=globals())
-	print("[ES](" + str(n) + ") took " + str(round(t.timeit(1), 4)) + "s")
+	print("[ES]({}) took {:.4f}s".format(n, t.timeit(1)))
 
 for n in [10,24]:
 	t = timeit.Timer("hillClimbing(" + str(n) + ")", globals=globals())
-	print("[HC](" + str(n) + ") took " + str(round(t.timeit(1), 4)) + "s")
+	print("[HC]({}) took {:.4f}s".format(n, t.timeit(1)))
 	
