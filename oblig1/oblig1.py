@@ -193,7 +193,7 @@ for n in [24]:
 #Genetic algorithm, pop 10
 for n in [24]:
 	for p in [100]:
-		t = timeit.Timer("geneticAlgorithm(" + str(n) + ", 10)", globals=globals())
+		t = timeit.Timer("geneticAlgorithm(" + str(n) + ", " + str(p) + ")", globals=globals())
 		print("[GA]({},{}) took {:.4f}s".format(n, p, t.timeit(1)))
 
 
