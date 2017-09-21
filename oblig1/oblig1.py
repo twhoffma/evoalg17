@@ -26,6 +26,14 @@ def getRouteDistance(r):
 	
 	return(dist)
 
+def swapTwo(cityRoute, city1, city2):
+	tmpRoute = list(cityRoute)
+	t = tmpRoute[city1]
+	tmpRoute[city1] = tmpRoute[city2]
+	tmpRoute[city2] = t
+	
+	return(tmpRoute)
+
 def climbHill(cityRoute, numSamp):
 	minDist = getRouteDistance(cityRoute)
 	bestRoute = cityRoute	
@@ -74,9 +82,6 @@ def hillClimbing(numCities):
 	numSamp = 1000
 	
 	initRoutes = [random.sample(range(0, numCities), numCities) for i in range(numIter)]	
-	
-	print("init route length:" + str(len(initRoutes[0])))
-	
 	
 	for cityRoute in initRoutes:
 		#Pairs of random changes
@@ -139,18 +144,19 @@ def geneticAlgorithm(numCities, popSize):
 					
 				#Mutation - swap two cities on each child, like a single step hillclimb.
 				m = random.sample(range(0, numCities), 2)
-				route = c[1]
-				tmpCity = route[m[0]]
-				route[m[0]] = m[1]
-				route[m[1]] = tmpCity
-				
-				pop = pop + [(getRouteDistance(c[1]),c[1])]	
+				#route = c[1]
+				#tmpCity = route[m[0]]
+				#route[m[0]] = m[1]
+				#route[m[1]] = tmpCity
+				newRoute = swapTwo(c[1], m[0], m[1])	
+				pop = pop + [(getRouteDistance(newRoute),newRoute)]	
 		#Only the top popSize survives
 		pop.sort()
 		pop = pop[0:popSize+1]
 	#After numGens generations, print stats
 	dists = [p[0] for p in pop]
 	print("Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(min(dists),max(dists),statistics.mean(dists), statistics.stdev(dists)))
+	print(pop[0])
 	
 		
 			
@@ -174,19 +180,19 @@ def hydridBaldwinian(numCities, popSize):
 	pop = getSamplePopulation(numCities, popSize)
 	print(pop)
 
-##Timing Exhaustive Search
-#for n in [6,7,8,9,10]:
+#Timing Exhaustive Search
+#for n in [10]:
 #	t = timeit.Timer("exhaustiveSearch(" + str(n) + ")", globals=globals())
 #	print("[ES]({}) took {:.4f}s".format(n, t.timeit(1)))
 
-##Hill climing
-#for n in [10,24]:
-#	t = timeit.Timer("hillClimbing(" + str(n) + ")", globals=globals())
-#	print("[HC]({}) took {:.4f}s".format(n, t.timeit(1)))
+#Hill climing
+for n in [24]:
+	t = timeit.Timer("hillClimbing(" + str(n) + ")", globals=globals())
+	print("[HC]({}) took {:.4f}s".format(n, t.timeit(1)))
 
 #Genetic algorithm, pop 10
-for n in [10]:
-	for p in [10]:
+for n in [24]:
+	for p in [100]:
 		t = timeit.Timer("geneticAlgorithm(" + str(n) + ", 10)", globals=globals())
 		print("[GA]({},{}) took {:.4f}s".format(n, p, t.timeit(1)))
 
