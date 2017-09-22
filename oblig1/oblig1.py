@@ -26,7 +26,7 @@ def getRouteDistance(r):
 	
 	return(dist)
 
-def swapTwo(cityRoute, city1, city2):
+def swap(cityRoute, city1, city2):
 	tmpRoute = list(cityRoute)
 	t = tmpRoute[city1]
 	tmpRoute[city1] = tmpRoute[city2]
@@ -84,25 +84,6 @@ def hillClimbing(numCities):
 	initRoutes = [random.sample(range(0, numCities), numCities) for i in range(numIter)]	
 	
 	for cityRoute in initRoutes:
-		#Pairs of random changes
-		#cp = [(random.randint(0, len(initRoutes[0])-1), random.randint(0, len(initRoutes[0])-1)) for i in range(numSamp)]
-		#minDist = getRouteDistance(cityRoute)
-		#bestRoute = cityRoute	
-		#
-		#for c in cp:	
-		#	c1 = c[0]
-		#	c2 = c[1]
-		#	if c1 != c2:
-		#		tmpRoute = list(cityRoute) #copy
-		#		t = tmpRoute[c1]
-		#		tmpRoute[c1] = tmpRoute[c2]
-		#		tmpRoute[c2] = t
-		#		dist = getRouteDistance(tmpRoute)
-		#		if dist < minDist:
-		#			minDist = dist
-		#			bestRoute = tmpRoute
-		#solDists.append(dist)
-		#solRoutes.append(bestRoute)
 		r = climbHill(cityRoute, numSamp)
 		solDists.append(r[0])
 		solRoutes.append(r[1])
@@ -119,58 +100,69 @@ def getSamplePopulation(numCities, popSize):
 	pop.sort()
 	
 	return(pop)
+
+#Breeders 1 return top 50%
+def getBreeders1(pop):
+	pop.sort()
+	cutoff = int(len(pop)/2)+1
+	breeders = list(pop[0:cutoff])
+	return(breeders)
+
+#CrossOver1 selects a random mirror a position of in both children
+def crossover1(route1, route2):
+	numCities = len(route1)
 	
+	m = random.sample(range(0, numCities), 2)
+	mPos0 = route1.index(m[0])
+	mPos1 = route2.index(m[0])
+	
+	route1 = swap(route1, mPos0, mPos1)
+	
+	mPos0 = route1.index(m[1])
+	mPos1 = route2.index(m[1])
+	
+	route2 = swap(route2, mPos0, mPos1)
+	
+	return((route1,route2))
+
+def mutate1(routes):
+	newRoutes = []
+	for r in routes:
+		m = random.sample(range(0, len(r)), 2)
+		newRoutes.append(swap(r, m[0], m[1]))
+	return newRoutes
+
 def geneticAlgorithm(numCities, popSize):
 	numGens = 10
 	pop = getSamplePopulation(numCities, popSize)
-	#print(pop)
 	
 	#Generation loop
 	for j in range(numGens):
+		breeders = getBreeders1(pop)
 		
 		#Population breeding loop
-		for i in range(0,int(popSize/2),2):
-			#The children
-			#c1 = list(pop[i]);
-			#c2 = list(pop[i+1]);
+		for i in range(0,int(len(breeders)/2),2):
+			children = list(breeders[i:i+2]) #end on < i+2
 			
-			children = list(pop[i:i+2]) #end on i+2, but do not include it
+			c0 = list(children[0][1])
+			c1 = list(children[1][1])
 			
-			for c in children:
-				#Crossover - for a random integer, move that city to that spot.
-				#k1,k2 = random.sample(range(0, numCitites), 2)
-				#Find k1 in both children. For c2 make k1 at the same postition as in c1
-				#Find k2 in both children. For c1 make k2 at the same position as in c2. 
-					
-				#Mutation - swap two cities on each child, like a single step hillclimb.
-				m = random.sample(range(0, numCities), 2)
-				#route = c[1]
-				#tmpCity = route[m[0]]
-				#route[m[0]] = m[1]
-				#route[m[1]] = tmpCity
-				newRoute = swapTwo(c[1], m[0], m[1])	
-				pop = pop + [(getRouteDistance(newRoute),newRoute)]	
+			#For each route, a positioned is mirrored.	
+			c0, c1 = crossover1(c0, c1)
+			
+			#Mutate - switch to random cities
+			c0, c1 = mutate1([c0, c1])
+			
+			for r in [c0, c1]:
+				pop = pop + [(getRouteDistance(r),r)]	
 		#Only the top popSize survives
 		pop.sort()
-		pop = pop[0:popSize+1]
+		#Kill the worst two.
+		pop = pop[0:popSize]
+		print(len(pop))
 	#After numGens generations, print stats
 	dists = [p[0] for p in pop]
 	print("Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(min(dists),max(dists),statistics.mean(dists), statistics.stdev(dists)))
-	print(pop[0])
-	
-		
-			
-	#steps.
-	#1. Select which parents will "breed": Ordered by distance asc.
-
-
-	#2. Make two children
-	#3. Make one crossover 
-	#3a. Select one city from parent a. Switch that city in parent b to the same location. Vise versa for parent a.
-	#4. Mutation
-	#5. Survivor
-	#5a. all parents are killed, only children survive to next iteration
-	#5b. children are added to population, the "fastest" popSize population survives.
 
 def hybridLamarckian(numCities, popSize):
 	pop = getSamplePopulation(numCities, popSize)
@@ -186,13 +178,13 @@ def hydridBaldwinian(numCities, popSize):
 #	print("[ES]({}) took {:.4f}s".format(n, t.timeit(1)))
 
 #Hill climing
-for n in [24]:
+for n in [10]:
 	t = timeit.Timer("hillClimbing(" + str(n) + ")", globals=globals())
 	print("[HC]({}) took {:.4f}s".format(n, t.timeit(1)))
 
 #Genetic algorithm, pop 10
-for n in [24]:
-	for p in [100]:
+for n in [10]:
+	for p in [10]:
 		t = timeit.Timer("geneticAlgorithm(" + str(n) + ", " + str(p) + ")", globals=globals())
 		print("[GA]({},{}) took {:.4f}s".format(n, p, t.timeit(1)))
 
