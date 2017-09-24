@@ -1,0 +1,166 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+INF3490 - Assignment 1
+\end_layout
+
+\begin_layout Author
+Torgeir Hoffmann / twhoffma@uio.no
+\end_layout
+
+\begin_layout Section*
+How to run
+\end_layout
+
+\begin_layout Standard
+In assigment folder: 
+\end_layout
+
+\begin_layout Standard
+python3 oblig1.py
+\end_layout
+
+\begin_layout Section*
+Exhaustive Search
+\end_layout
+
+\begin_layout Standard
+This took just shy of 18.4s to run for 10 cities.
+ Given that the number of solutions to try is 24!, one can assume that since
+ the search algorithm is not in any way optimized with Djikstra or anything
+ else and it is O(n) at best so rough estimated time would be (in years):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{24!}{10!}\times\frac{18.4}{60\times60\times24\times365}\approx9,75e+10
+\]
+
+\end_inset
+
+ Given the vast amount of solutions to attempt, nothing would actually help
+ all that much in terms of the vast number of potential solutions to search.
+\end_layout
+
+\begin_layout Section*
+Hill Climbing
+\end_layout
+
+\begin_layout Standard
+Using a total of 1000 switches for each run and 20 initial routes, I received
+ the following results.
+\end_layout
+
+\begin_layout Section*
+Genetic Algorithm
+\end_layout
+
+\begin_layout Standard
+It was hard to say what was the right parameters to be passed here.
+ What I was most concened about in the selection process was premature convergen
+ce, but given the problem it would be hard to argue that even if two solutions
+ had the same high fitness, that they wouldn't be very different.
+ 
+\end_layout
+
+\begin_layout Itemize
+Generations: 7
+\end_layout
+
+\begin_layout Itemize
+Population: 10,100,1000
+\end_layout
+
+\begin_layout Itemize
+Selection: Rank-based Selection Linear Ranking.
+ Even for the simplest fitness function, 1/distance, the standard deviation
+ can be huge.
+ This will lead to a highly fluctuating number of parents each generation.
+ Also, given that we need two parents for each breeding, implies extra care.
+ 
+\end_layout
+
+\begin_layout Itemize
+Crossover: Mirror of a random point in each parent, as a normal cross-over
+ would result in mostly non-functioning solutions.
+ 100% crossover probability.
+\end_layout
+
+\begin_layout Itemize
+Mutation: Switch to random cities in each child.
+ 100% mutation probability.
+\end_layout
+
+\end_body
+\end_document
