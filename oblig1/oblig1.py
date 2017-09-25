@@ -16,11 +16,6 @@ for line in f:
 	data.append(row)
 
 def getRouteDistance(r):
-	#Start with return journey distance
-	#dist = data[r[-1]][r[0]]
-	#for i in range(len(r)):
-	#	dist = dist + data[r[i-1]][r[i]]
-	#	#dist = dist + data[r[i-1]][p]
 	dist = sum(data[r[i-1]][r[i]] for i in range(len(r)))
 	return(dist)
 
@@ -70,14 +65,13 @@ def exhaustiveSearch(numCities):
 	
 	print("[ES](" + str(numCities) + ") Best route: " + str(namedRoute) + " in " + str(round(minDist, 2)) + "km")
 
-def hillClimbing(numCities):
+def hillClimbing(numCities, numSamp):
 	minDist = 0
 	bestRoute = ()
 	solDists = []
 	solRoutes = []
 	
 	numIter = 20
-	numSamp = 1000
 	
 	initRoutes = [random.sample(range(0, numCities), numCities) for i in range(numIter)]	
 	
@@ -86,7 +80,7 @@ def hillClimbing(numCities):
 		solDists.append(r[0])
 		solRoutes.append(r[1])
 	
-	print("[HC]({}) Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(numCities, min(solDists),max(solDists),statistics.mean(solDists), statistics.stdev(solDists)))
+	print("[HC]({},{}) Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(numCities, numSamp, min(solDists),max(solDists),statistics.mean(solDists), statistics.stdev(solDists)))
 
 #--- Genetic algorithms ---
 def getSamplePopulation(numCities, popSize):
@@ -101,6 +95,7 @@ def getSamplePopulation(numCities, popSize):
 	return(pop)
 
 #Breeders 1 return top x%
+#TODO: Doesn't have the s arg used in Rank-based Selection Linear ranking
 def getBreeders1(pop):
 	pop.sort()
 	r = random.uniform(0,1)
@@ -134,15 +129,25 @@ def mutate1(routes):
 		newRoutes.append(swap(r, m[0], m[1]))
 	return newRoutes
 
+def runGA(numCities, popSize):
+	sols = []
+	for i in range(20):
+		sol = geneticAlgorithm(numCities, popSize)
+		sols.append(sol)
+	dists = [s[0] for s in sols]
+	print("[GA]({},{}) Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(numCities, popSize, min(dists),max(dists),statistics.mean(dists), statistics.stdev(dists)))
+
 def geneticAlgorithm(numCities, popSize):
-	numGens = 20
+	numGens = 0
+	avgs = []
 	pop = getSamplePopulation(numCities, popSize)
-	
-	#Generation loop
-	for j in range(numGens):
+	currAvg = statistics.mean([p[0] for p in pop])
+	avgs.insert(0, currAvg) 
+	#Generation loop - continue producing generations as long as there is an improvement for the last 10
+	while len(avgs) < 10 or (numGens < (5 * popSize) and (len(avgs) == 10 and statistics.stdev(avgs) != 0)):
 		breeders = getBreeders1(pop)
 		
-		#Population breeding loop
+		#Population breeding loop - pair two and two, on best fitness.
 		for i in range(0,int(len(breeders)/2),2):
 			children = list(breeders[i:i+2]) #end on < i+2
 			
@@ -156,19 +161,23 @@ def geneticAlgorithm(numCities, popSize):
 			c0, c1 = mutate1([c0, c1])
 			
 			for r in [c0, c1]:
-				pop = pop + [(getRouteDistance(r),r)]	
+				pop = pop + [(getRouteDistance(r),r)]
+			numGens = numGens + 1
 		#Only the top popSize survives
 		pop.sort()
-		#Kill the worst two.
 		pop = pop[0:popSize]
-	#After numGens generations, print stats
-	dists = [p[0] for p in pop]
-	print("[GA]({},{}) Best: {:.2f}km, Worst: {:.2f}km, Avg: {:.2f}km, Stdev: {:.2f}km".format(numCities, len(pop), min(dists),max(dists),statistics.mean(dists), statistics.stdev(dists)))
+		currAvg = statistics.mean([p[0] for p in pop])
+		avgs.insert(0, currAvg)
+		avgs = avgs[0:10]
+	#return best solution
+	return(pop[0])
 
+#This is a stub..
 def hybridLamarckian(numCities, popSize):
 	pop = getSamplePopulation(numCities, popSize)
 	print(pop)
 
+#This is a stub..
 def hydridBaldwinian(numCities, popSize):
 	pop = getSamplePopulation(numCities, popSize)
 	print(pop)
@@ -182,16 +191,17 @@ def timeExhaustiveSearch():
 #Hill climing
 def timeHillClimbing():
 	for n in [10, 24]:
-		t = timeit.Timer("hillClimbing(" + str(n) + ")", globals=globals())
-		print("[HC]({}) took {:.4f}s".format(n, t.timeit(1)))
+		for s in [100, 1000, 10000]:
+			t = timeit.Timer("hillClimbing(" + str(n) + "," + str(s) + ")", globals=globals())
+			print("[HC]({},{}) took {:.4f}s".format(n,s, t.timeit(1)))
 
 #Genetic algorithm, pop 10
 def timeGA():
-	for n in [10,24]:
-		for p in [10,100,1000]:
-			t = timeit.Timer("geneticAlgorithm(" + str(n) + ", " + str(p) + ")", globals=globals())
+	for n in [10, 24]:
+		for p in [10, 100, 1000]:
+			t = timeit.Timer("runGA(" + str(n) + ", " + str(p) + ")", globals=globals())
 			print("[GA]({},{}) took {:.4f}s".format(n, p, t.timeit(1)))
 
-timeExhaustiveSearch()
-timeHillClimbing()
+#timeExhaustiveSearch()
+#timeHillClimbing()
 timeGA()
