@@ -202,6 +202,6 @@ def timeGA():
 			t = timeit.Timer("runGA(" + str(n) + ", " + str(p) + ")", globals=globals())
 			print("[GA]({},{}) took {:.4f}s".format(n, p, t.timeit(1)))
 
-#timeExhaustiveSearch()
-#timeHillClimbing()
+timeExhaustiveSearch()
+timeHillClimbing()
 timeGA()
