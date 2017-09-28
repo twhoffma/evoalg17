@@ -1,3 +1,4 @@
 *.swp
 *.lyx~
 *.lyx#
+*__pycache__*
