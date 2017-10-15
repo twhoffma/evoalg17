@@ -7,6 +7,11 @@
 # Feel free to use numpy in your MLP if you like to.
 import numpy as np
 import mlp
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--hidden", help="Number of hidden nodes")
+args = parser.parse_args()
 
 filename = '../data/movements_day1-3.dat'
 
@@ -50,7 +55,10 @@ test = movements[3::4,0:40]
 test_targets = target[3::4]
 
 # Try networks with different number of hidden nodes:
-hidden = 12
+if args.hidden:
+	hidden = args.hidden
+else:
+	hidden = 12
 
 # Initialize the network:
 net = mlp.mlp(train, train_targets, hidden)
