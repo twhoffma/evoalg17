@@ -11,6 +11,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--hidden", help="Number of hidden nodes")
+parser.add_argument("--mom", help="Momentum")
+parser.add_argument("--eta", help="Eta")
+parser.add_argument("--beta", help="Beta")
+
 args = parser.parse_args()
 
 filename = '../data/movements_day1-3.dat'
@@ -56,12 +60,27 @@ test_targets = target[3::4]
 
 # Try networks with different number of hidden nodes:
 if args.hidden:
-	hidden = args.hidden
+	hidden = int(args.hidden)
 else:
 	hidden = 12
 
+if args.eta:
+	eta = float(args.eta)
+else:
+	eta = 0.1
+
+if args.beta:
+	beta = float(args.beta)
+else:
+	beta = 3
+
+if args.mom:
+	mom = float(args.mom)
+else:
+	mom = 0
+
 # Initialize the network:
-net = mlp.mlp(train, train_targets, hidden)
+net = mlp.mlp(train, train_targets, hidden, mom, eta, beta)
 
 # Run training:
 net.earlystopping(train, train_targets, valid, valid_targets)
