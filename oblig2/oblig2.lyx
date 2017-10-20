@@ -1,0 +1,294 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+INF3490 - Assignment 2
+\end_layout
+
+\begin_layout Author
+Torgeir Hoffmann / twhoffma@uio.no
+\end_layout
+
+\begin_layout Section*
+How to run
+\end_layout
+
+\begin_layout Standard
+In code folder: 
+\end_layout
+
+\begin_layout Standard
+python3 movement.py
+\end_layout
+
+\begin_layout Section*
+Additional arguments
+\end_layout
+
+\begin_layout Standard
+May use 
+\begin_inset Quotes eld
+\end_inset
+
+--hidden int
+\begin_inset Quotes erd
+\end_inset
+
+ for number of hidden nodes, 
+\begin_inset Quotes eld
+\end_inset
+
+--mom float
+\begin_inset Quotes erd
+\end_inset
+
+ for momentum, 
+\begin_inset Quotes eld
+\end_inset
+
+--beta int
+\begin_inset Quotes erd
+\end_inset
+
+ for 
+\begin_inset Formula $\beta$
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+--eta float
+\begin_inset Quotes erd
+\end_inset
+
+ for 
+\begin_inset Formula $\eta$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+Setup
+\end_layout
+
+\begin_layout Standard
+Maximum of 100 iterations in early stopping by default, not possible to
+ override.
+ 10 sequential training iterations with randomized order.
+ Minimum 0.001 improvement over the last two epochs.
+\end_layout
+
+\begin_layout Section*
+Summarizing Thoughts
+\end_layout
+
+\begin_layout Standard
+There seems to be quite a bit of variation in run time and how well the
+ algorithm performs.
+ However, the general pattern seems to be that the number of hidden nodes
+ are very important.
+ 
+\end_layout
+
+\begin_layout Standard
+As can be seen by the confusion table, lower number of hidden nodes compared
+ to output nodes severly limits the efficiency, while 12 hidden mostly get
+ high 70% efficiency, 6 hidden nodes often performs at only 30% efficiency.
+ 
+\end_layout
+
+\begin_layout Standard
+This makes sense, since intuitively, one could think that one were compressing
+ the inputs in the hidden layer then expanding it again when moving to the
+ output layer.
+ Intuitively, one can expect that more hidden nodes than input nodes would
+ not yield must improvements over number of hidden nodes between the number
+ of input nodes and output nodes.
+\end_layout
+
+\begin_layout Standard
+In particular, targets with movement 
+\begin_inset Quotes eld
+\end_inset
+
+4
+\begin_inset Quotes erd
+\end_inset
+
+ (index 3 in array and table) seemed hard to classify for the MLP.
+\end_layout
+
+\begin_layout Standard
+Also, the early stopping seemed volatile in that it could run for a significant
+ variating number of iterations before stopping on same number of hidden
+ nodes.
+ So it looks like number of hidden nodes is not dominant in early stopping.
+\end_layout
+
+\begin_layout Section*
+Confusion Tables
+\end_layout
+
+\begin_layout Subsection*
+6 hidden nodes (33.33% efficiency)
+\end_layout
+
+\begin_layout Standard
+Efficiency range seems to be 30% - 40%.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $\begin{tabular}{|l|c|c|c|c|c|c|c|c|}
+ target/out  &  0  &  1  &  2  &  3  &  4  &  5  &  6  &  7 \\
+\hline  0  &  0.00  &  \textbf{0.14}  &  \textbf{0.07}  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.79}\\
+\hline  1  &  0.00  &  \textbf{0.94}  &  0.00  &  0.00  &  \textbf{0.06}  &  0.00  &  0.00  &  0.00\\
+\hline  2  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00\\
+\hline  3  &  0.00  &  \textbf{0.62}  &  0.00  &  \textbf{0.38}  &  0.00  &  0.00  &  0.00  &  0.00\\
+\hline  4  &  0.00  &  \textbf{0.09}  &  0.00  &  \textbf{0.36}  &  \textbf{0.55}  &  0.00  &  0.00  &  0.00\\
+\hline  5  &  0.00  &  \textbf{0.09}  &  0.00  &  0.00  &  \textbf{0.91}  &  0.00  &  0.00  &  0.00\\
+\hline  6  &  0.00  &  \textbf{0.05}  &  0.00  &  \textbf{0.05}  &  \textbf{0.90}  &  0.00  &  0.00  &  0.00\\
+\hline  7  &  0.00  &  \textbf{0.06}  &  0.00  &  \textbf{0.12}  &  0.00  &  0.00  &  0.00  &  \textbf{0.81}
+\end{tabular}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+8 hidden nodes (45.05% efficiency)
+\end_layout
+
+\begin_layout Standard
+Efficiency range seems 40% - 50%.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $\begin{tabular}{|l|c|c|c|c|c|c|c|c|}
+ target/out  &  0  &  1  &  2  &  3  &  4  &  5  &  6  &  7 \\
+\hline  0  &  \textbf{0.11}  &  0.00  &  \textbf{0.06}  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.83}\\
+\hline  1  &  0.00  &  0.00  &  \textbf{0.92}  &  0.00  &  0.00  &  0.00  &  \textbf{0.08}  &  0.00\\
+\hline  2  &  0.00  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00\\
+\hline  3  &  0.00  &  0.00  &  \textbf{0.67}  &  0.00  &  \textbf{0.28}  &  0.00  &  \textbf{0.06}  &  0.00\\
+\hline  4  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00  &  0.00\\
+\hline  5  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.67}  &  \textbf{0.33}  &  0.00\\
+\hline  6  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.40}  &  \textbf{0.60}  &  0.00\\
+\hline  7  &  \textbf{0.25}  &  0.00  &  \textbf{0.25}  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.50}
+\end{tabular}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+12 hidden nodes (76.58% efficiency)
+\end_layout
+
+\begin_layout Standard
+Efficiency range is mostly 70% and above.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $\begin{tabular}{|l|c|c|c|c|c|c|c|c|}
+ target/out  &  0  &  1  &  2  &  3  &  4  &  5  &  6  &  7 \\
+\hline  0  &  \textbf{0.69}  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.19}  &  0.00  &  \textbf{0.12}\\
+\hline  1  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00\\
+\hline  2  &  0.00  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00\\
+\hline  3  &  0.00  &  0.00  &  0.00  &  \textbf{0.06}  &  \textbf{0.38}  &  \textbf{0.31}  &  \textbf{0.12}  &  \textbf{0.12}\\
+\hline  4  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00  &  0.00\\
+\hline  5  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{1.00}  &  0.00  &  0.00\\
+\hline  6  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{0.38}  &  \textbf{0.62}  &  0.00\\
+\hline  7  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  0.00  &  \textbf{1.00}
+\end{tabular}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Which classes could be mistaken for each other?
+\end_layout
+
+\begin_layout Standard
+Class 4 (index 3) seems hard to place from the 5,6,7,8 for this run in particula
+r.
+ However, this is also a pattern that emerges in many subsequent runs.
+ This does not seem to be the case for the other classes.
+\end_layout
+
+\begin_layout Standard
+This is also often the case for class 5 and 6
+\end_layout
+
+\end_body
+\end_document

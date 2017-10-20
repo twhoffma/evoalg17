@@ -5,7 +5,7 @@
 import numpy as np
 
 class mlp:
-    def __init__(self, inputs, targets, nhidden, momentum = 0, eta = 0.1, beta = 1):
+    def __init__(self, inputs, targets, nhidden, momentum = 0, eta = 0.1, beta = 1, output_latex = False):
         self.beta = beta
         self.eta = eta
         self.momentum = momentum
@@ -15,7 +15,10 @@ class mlp:
         self.last_presignals = []
         self.act_fn = np.vectorize(lambda x: self.sigmoid(x))
         self.deriv_act_fn = np.vectorize(lambda x: self.deriv_sigmoid(x))
-         
+        
+        #Output options
+        self.output_latex = output_latex 
+        
         n = np.shape(inputs)[1] + 1
         m = np.shape(targets)[1]
          
@@ -32,21 +35,39 @@ class mlp:
             bias = [-1]
         else:
             bias = -np.ones((np.shape(inputs)[0],1))
-        #print("Axis=" + str(a))
-        #print(np.shape(inputs))
-        #print(np.shape(bias))
         out = np.concatenate((inputs, bias), axis=a)
-        #print(out)
         return(out)
      
     def earlystopping(self, inputs, targets, valid, validtargets, iterations=100):
-        print('"earlystopping": To be implemented')
-        #So this is the triggering for training
-        self.train(inputs, targets, iterations)
+        #self.train2(inputs, targets, iterations)
+        it = 0
+        avg_errors = []
+        while it < iterations and self.errors_converge(avg_errors):
+            print(it)
+            self.train(inputs, targets, 10)
+            validres = self.forward(valid)
+            err = []
+            for i in range(np.shape(validres)[0]):
+                err.append(self.calc_error(validres[i], validtargets[i]))
+            avg_errors.append(np.average(err))
+            it = it + 1
+            #print(avg_errors[-1])
+        print("Stopped after {} iterations".format(it))
+    
+    #Helper function to check if errors converge  
+    def errors_converge(self, avg_errors):
+        #We measure backwards
+        if len(avg_errors) < 3:
+            return(True)
+        #If there is improvement for at least one the last two epochs, keep going.
+        elif ((avg_errors[-2] - avg_errors[-1] > 0.001) or (avg_errors[-3] - avg_errors[-2] > 0.001)):
+            return(True)
+        else:
+            #Stop if no improvement
+            return(False)
         
-
-    def train(self, inputs, targets, iterations=100):
-        print('Training')
+    def train2(self, inputs, targets, iterations=100):
+        #print('Training')
         #We need to implement shuffling at each iteration
         #All need to be iterated over
         #print(np.shape(inputs))
@@ -60,6 +81,7 @@ class mlp:
                 inputs = [inputs] #Only used for testing
                 targets = [targets]
             
+            errs = [] 
             #Randomize the order to improve training.
             training_order = list(range(0, np.shape(inputs)[0]))
             np.random.shuffle(training_order)
@@ -69,7 +91,7 @@ class mlp:
                 t = targets[o]
                 a = self.forward(i)
                 #err =
-                last_err = self.calc_error(a,t) 
+                errs.append(self.calc_error(a,t))
                 wchg_o = self.calc_output_weights_chg(a,t)
                 wchg_h = self.calc_hidden_weights_chg(a,t, i)
                 #First we do the output layer, which is the last presignal
@@ -106,7 +128,42 @@ class mlp:
                 #print(self.last_presignals)
                 #print("Activation values") 
                 #print(a)
-            print(last_err)
+            print(np.average(errs))
+    
+    def train(self, inputs, targets, iterations):
+        prev_weight_changes = []
+        for weight in self.weights: 
+            prev_weight_changes.append(np.zeros(np.shape(weight)))
+        
+        for it in range(iterations):
+            errs = [] 
+            #Randomize the order to improve training.
+            training_order = list(range(0, np.shape(inputs)[0]))
+            np.random.shuffle(training_order)
+            
+            #We train and adjust weights a single sample at a time.
+            for o in training_order:
+                i = inputs[o]
+                t = targets[o]
+                a = self.forward(i)
+                errs.append(self.calc_error(a,t))
+                weights_change_output = self.calc_output_weights_chg(a,t)
+                weights_change_hidden = self.calc_hidden_weights_chg(a,t, i)
+                
+                weights_change_output = np.multiply(self.eta, weights_change_output)
+                weights_change_hidden = np.multiply(self.eta, weights_change_hidden)
+                 
+                #self.weights[-1] = np.subtract(self.weights[-1],  np.multiply(self.eta, wchg_o))
+                #self.weights[-2] = np.subtract(self.weights[-2],  np.multiply(self.eta, wchg_h))
+                self.weights[-1] = np.subtract(self.weights[-1],  weights_change_output)
+                self.weights[-2] = np.subtract(self.weights[-2],  weights_change_hidden)
+                
+                #Add momentum from previous runs
+                self.weights[-1] = np.add(self.weights[-1], np.multiply(prev_weight_changes[-1], self.momentum))
+                self.weights[-2] = np.add(self.weights[-2], np.multiply(prev_weight_changes[-2], self.momentum))
+                prev_weight_changes[-1] = weights_change_output
+                prev_weight_changes[-2] = weights_change_hidden
+            #print(np.average(errs))
     
     def calc_output_weights_chg(self, a, t):
         ps = self.last_presignals[-1]
@@ -159,10 +216,37 @@ class mlp:
         return outputs
     
     def confusion(self, inputs, targets):
-        #print(inputs)
-        #print(targets)
-        #TODO: Make a 8 x 8 matrix. Colums are targets, Rows are selected. Add percent like a correlation table.
-        print('"confusion": To be implemented')
+        print('Confusion matrix:')
+        cats = self.forward(inputs)
+        confusion_table = np.zeros((8,8))
+        num_correct = 0
+        num_total = 0
+        for i in range(0, np.shape(cats)[0]):
+            x = cats[i].argmax()
+            y = targets[i].argmax()
+            if x == y:
+                num_correct = num_correct + 1
+            confusion_table[y][x] = confusion_table[y][x] + 1
+        for i in range(0, np.shape(confusion_table)[0]):
+            confusion_table[i] = np.round(np.divide(confusion_table[i], sum(confusion_table[i])),2)
+        if self.output_latex:
+            self.print_latex_table(confusion_table)
+        else:
+            print(confusion_table)
+        print("Success percentage: {:.2f}%".format(float(num_correct) / np.shape(targets)[0] * 100))
+    
+    def print_latex_table(self, tbl):
+        cols = range(np.shape(tbl)[1])
+        print("\\begin{tabular}{|l"+str.join("", ["|c" for x in cols])+"|}")
+        print("target/out & " + str.join(" & ", [str(x) for x in cols]) + " \\\\") 
+        print("\\hline")
+        for i in range(np.shape(tbl)[0]):
+            r = tbl[i]
+            formatted = ["{:.2f}".format(x) for x in r]
+            print(str(i) + " & " + str.join(" & ", ["\\textbf{" + x + "}" if x != "0.00" else x for x in formatted]) + "\\\\")
+            print("\\hline")
+        print("\\hline")
+        print("\\end{tabular}")
     
     def calc_error(self, y, t):
         e = 0.5*sum(np.square(np.subtract(y,t)))

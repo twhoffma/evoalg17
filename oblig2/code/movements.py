@@ -10,10 +10,11 @@ import mlp
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--hidden", help="Number of hidden nodes")
-parser.add_argument("--mom", help="Momentum")
-parser.add_argument("--eta", help="Eta")
-parser.add_argument("--beta", help="Beta")
+parser.add_argument("--hidden", help="Number of hidden nodes", type=int, default=12)
+parser.add_argument("--mom", help="Momentum", type=float, default=0.0)
+parser.add_argument("--eta", help="Eta", type=float, default=0.1)
+parser.add_argument("--beta", help="Beta", type=int, default=3)
+parser.add_argument("--latex", help="Outputs tables as LaTeX code", action='store_true')
 
 args = parser.parse_args()
 
@@ -59,28 +60,15 @@ test = movements[3::4,0:40]
 test_targets = target[3::4]
 
 # Try networks with different number of hidden nodes:
-if args.hidden:
-	hidden = int(args.hidden)
-else:
-	hidden = 12
+#hidden = 12
 
-if args.eta:
-	eta = float(args.eta)
-else:
-	eta = 0.1
-
-if args.beta:
-	beta = float(args.beta)
-else:
-	beta = 3
-
-if args.mom:
-	mom = float(args.mom)
-else:
-	mom = 0
-
+print("hidden nodes: {}".format(args.hidden))
+print("momentum: {:.2f}".format(args.mom))
+print("eta: {:.2f}".format(args.eta))
+print("beta: {}".format(args.beta))
+ 
 # Initialize the network:
-net = mlp.mlp(train, train_targets, hidden, mom, eta, beta)
+net = mlp.mlp(train, train_targets, args.hidden, args.mom, args.eta, args.beta, args.latex)
 
 # Run training:
 net.earlystopping(train, train_targets, valid, valid_targets)
