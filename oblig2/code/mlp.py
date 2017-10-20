@@ -39,10 +39,10 @@ class mlp:
         #print(out)
         return(out)
      
-    def earlystopping(self, inputs, targets, valid, validtargets, iterations=1):
+    def earlystopping(self, inputs, targets, valid, validtargets, iterations=100):
         print('"earlystopping": To be implemented')
         #So this is the triggering for training
-        self.train(inputs[0:1], targets[0], iterations)
+        self.train(inputs, targets, iterations)
         
 
     def train(self, inputs, targets, iterations=100):
@@ -63,15 +63,15 @@ class mlp:
             #Randomize the order to improve training.
             training_order = list(range(0, np.shape(inputs)[0]))
             np.random.shuffle(training_order)
-            
             #We train and adjust weights a single sample at a time.
             for o in training_order:
                 i = inputs[o]
                 t = targets[o]
                 a = self.forward(i)
                 #err =
-                print(self.calc_error(a,t)) 
-                self.calc_output_weights_chg(a,t)
+                last_err = self.calc_error(a,t) 
+                wchg_o = self.calc_output_weights_chg(a,t)
+                wchg_h = self.calc_hidden_weights_chg(a,t, i)
                 #First we do the output layer, which is the last presignal
                 #delta_k = self.delta_output(a,t)
                 #print("<delta_k>")
@@ -80,7 +80,10 @@ class mlp:
                 #delta_k is a [1...8] array
                 #if k is the position, we need to update 12 values for each k. 
                 #The 12 inbound weights to this output node.
-                
+                self.weights[-1] = np.subtract(self.weights[-1],  np.multiply(self.eta, wchg_o))
+                self.weights[-2] = np.subtract(self.weights[-2],  np.multiply(self.eta, wchg_h))
+                #print(np.shape(self.weights[-2]))
+                #print(np.shape(self.weights[-1]))
                 #presignal = self.last_presignals[-1]
                 #chg = prev_weight_chgs[-1]
                 
@@ -103,15 +106,43 @@ class mlp:
                 #print(self.last_presignals)
                 #print("Activation values") 
                 #print(a)
-                
+            print(last_err)
+    
     def calc_output_weights_chg(self, a, t):
-       ps = self.last_presignals[-1]
-       preHidden = self.last_presignals[0] #We have only one hidden layer
-       actHidden = self.act_fn(preHidden)
-       deltas = self.delta_output(a, t)
-       print(np.shape(a))
-       print(np.shape(actHidden))
-     
+        ps = self.last_presignals[-1]
+        preHidden = self.last_presignals[-2] #We have only one hidden layer
+        actHidden = self.act_fn(preHidden)
+        deltas = self.delta_output(a, t)
+        #print(np.shape(a))
+        #print(np.shape(actHidden))
+        wght_chg = np.zeros((len(actHidden) + 1,len(deltas))) 
+        #Output weights' change
+        for i in range(0,len(actHidden)):
+            for j in range(0, len(deltas)):
+                wght_chg[i][j] = deltas[j]*actHidden[i]
+        #Weight update of betas' weights
+        for j in range(0, len(deltas)):
+            wght_chg[len(actHidden)][j] = deltas[j]
+        #print(wght_chg)
+        return(wght_chg)
+    
+    def calc_hidden_weights_chg(self, a, t, input_data):
+        d_o = self.delta_output(a, t)
+        w_o = np.array(self.weights[-1]) 
+        #deltas = self.calc_hidden_deltas(
+        #wght_chg = np.zeros((len(input_data) + 1,len(deltas))) #one additional row for bias
+        d_h = self.delta_hidden(a,t)
+        hidden_weight_changes = np.zeros((len(input_data)+1,len(d_h)))
+        for i in range(0, len(input_data)):
+            for j in range(0, len(d_h)):
+                hidden_weight_changes[i][j] = input_data[i]*d_h[j]
+        for j in range(0, len(d_h)):
+            hidden_weight_changes[len(input_data)][j] = d_h[j]
+        #print(hidden_weight_changes)
+        return(hidden_weight_changes)
+        #print(w_o)
+        #print(w_o[:,0])
+ 
     def forward(self, inputs):
         outputs = inputs
         
@@ -120,8 +151,8 @@ class mlp:
         for weight in self.weights:
             outputs = self.add_bias(outputs)
             outputs = np.dot(outputs, weight)
-            print("out")
-            print(outputs) 
+            #print("out")
+            #print(outputs) 
             self.last_presignals.append(outputs)
             
             outputs = self.act_fn(outputs)
@@ -150,7 +181,23 @@ class mlp:
         deltas = np.multiply(diffs, acts)
         return(deltas)
      
-    def delta_hidden(self, w, t):
-        print("Second derivative of sigmoid function")
-        #Remember self.beta
-
+    def delta_hidden(self, a, t):
+        weights_o = self.weights[-1] #Output layer weights
+        delta_o = self.delta_output(a,t)
+        z_hidden = self.last_presignals[-2]
+        a_hidden = self.deriv_act_fn(z_hidden)
+        d_out_weighted = np.zeros(len(z_hidden))
+        #Since z_hidden is one shorter than the weights, delta hidden will be nHidden long
+        for i in range(0, len(z_hidden)):
+            d_out_weighted[i] = np.dot(delta_o, weights_o[i])
+        d_hidden = np.multiply(a_hidden, d_out_weighted)
+        #print(d_hidden)
+        return(d_hidden)
+        #print("delta hidden size:")
+        #print(np.shape(delta_hidden))
+        #print("--del--")
+        #print(delta_o_weighted)
+        #print(np.shape(weights_o))
+        #print(np.shape(delta_o)) 
+        #print(np.shape(z_hidden))
+        #print(np.shape(a_hidden))
